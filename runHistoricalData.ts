@@ -13,10 +13,9 @@ export async function runHistoricalData(symbol: string, interval: number = 2000)
     const lines: string[] | undefined =
       typeof data === "string" ? data.trim().split("\n") : (data as any)?.results
 
-    if (!lines || lines.length === 0) {
-      console.log("No new data")
-      await sleep(interval)
-      continue
+    if (!lines || lines.length === 0 || (lines.length === 1 && lines[0] === "")) {
+      console.log(`[${symbol}] No more historical data found. Backfill complete.`)
+      break
     }
 
     const parsed: MarketDataRow[] = lines.map((line) => parseLine(line, symbol))
