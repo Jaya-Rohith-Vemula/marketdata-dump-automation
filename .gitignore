@@ -4,6 +4,7 @@ dist/
 
 # Oracle Wallet (Sensitive)
 wallet/
+Wallet/
 
 # Environment Variables (Sensitive)
 .env
