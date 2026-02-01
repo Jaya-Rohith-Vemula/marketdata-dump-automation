@@ -42,6 +42,8 @@ async function main() {
     }
   } catch (error) {
     console.error(`Error in ${MODE} data run:`, error);
+  } finally {
+    console.log("Process finished. Shutting down...");
     await shutdown();
   }
 }
