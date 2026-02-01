@@ -29,8 +29,8 @@ Follow these steps to set up your free Oracle Database and connect this project 
     *   Click **Download Wallet**.
     *   Enter a password for the wallet (can be the same as ADMIN).
     *   Download the `.zip` file.
-5.  Extract the `.zip` content into a folder named `wallet` inside this project directory:
-    *   Path: `/Users/ross/Documents/marketdata-dump-automation/wallet/`
+5.  Extract the `.zip` content into a folder named `Wallet` inside this project directory:
+    *   Path: `/Wallet`
 6.  In the **DB Connection** window, look at the **Connection Strings**.
     *   Find the one ending in `_low` or `_tp`.
     *   Copy the full string (the one starting with `(description=...`).
@@ -42,14 +42,15 @@ Open the `.env` file in this project and fill in the details:
 DB_USER=ADMIN
 DB_PASSWORD=YourAdminPassword
 DB_CONNECT_STRING="COPIED_CONNECTION_STRING"
-TNS_ADMIN="/Users/ross/Documents/marketdata-dump-automation/wallet"
+TNS_ADMIN="/Wallet"
 ```
 
 ## 4. Run the Project
 1.  Install dependencies: `npm install`
-2.  Run the fetcher: `node index.js`
+2.  Run the fetcher: `npm run dev:log`
 
 The script will automatically:
 *   Connect to Oracle.
 *   Create the `historical` table if it doesn't exist.
 *   Fetch and dump the data.
+
