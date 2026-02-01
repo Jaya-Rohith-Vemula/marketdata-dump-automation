@@ -17,16 +17,27 @@ process.on("SIGTERM", async () => {
 })
 
 async function main() {
+  console.log("Main function started.");
+
   // Initialize Oracle Schema first
-  await initSchema();
+  try {
+    console.log("Calling initSchema...");
+    await initSchema();
+    console.log("initSchema completed successfully.");
+  } catch (err) {
+    console.error("Failed to initialize schema. Exiting...");
+    process.exit(1);
+  }
 
   const MODE = process.env.MODE || "historical"; // Options: 'historical' or 'latest'
   console.log(`Starting market data fetch for ${SYMBOL} in ${MODE} mode...`);
 
   try {
     if (MODE === "latest") {
+      console.log("Entering runLatestData...");
       await runLatestData(SYMBOL, 2000);
     } else {
+      console.log("Entering runHistoricalData...");
       await runHistoricalData(SYMBOL, 2000);
     }
   } catch (error) {

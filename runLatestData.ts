@@ -35,14 +35,22 @@ export async function runLatestData(symbol: string, interval: number = 2000) {
       break
     }
 
-    await db.transaction(async (trx) => {
-      for (const row of newRows) {
-        await trx("historical")
-          .insert(row)
-          .onConflict(["symbol", "trade_date", "trade_time"])
-          .ignore()
-      }
-    })
+    // Use direct oracledb for bulk insertion to avoid Knex transaction/pool issues
+    const { getConn } = await import("./database.js");
+    const conn = await getConn();
+
+    console.log(`Inserting ${newRows.length} rows directly via oracledb...`);
+    const sql = `
+      INSERT INTO "historical" ("symbol", "trade_date", "trade_time", "open", "high", "low", "close", "volume", "datetime")
+      SELECT :symbol, :trade_date, :trade_time, :open, :high, :low, :close, :volume, :datetime FROM DUAL
+      WHERE NOT EXISTS (
+        SELECT 1 FROM "historical" 
+        WHERE "symbol" = :symbol AND "trade_date" = :trade_date AND "trade_time" = :trade_time
+      )
+    `;
+
+    // Execute many for efficiency
+    await conn.executeMany(sql, newRows, { autoCommit: true });
 
     totalInserted += newRows.length
 

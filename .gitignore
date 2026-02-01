@@ -8,6 +8,9 @@ wallet/
 # Environment Variables (Sensitive)
 .env
 
+# Logs
+logs/
+
 # OS-specific files
 .DS_Store
 

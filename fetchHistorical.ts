@@ -16,7 +16,7 @@ export async function fetchHistorical(symbol: string, end: string | null, retry:
     backadjust: false,
     daystoexpiration: 1,
     contractroll: "combined",
-    formt: true,
+    format: "json",
     splits: true,
     padded: false,
   }

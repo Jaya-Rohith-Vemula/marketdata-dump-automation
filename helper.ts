@@ -10,8 +10,10 @@ export async function shutdown() {
 
   try {
     console.log("Closing database...")
-    await db.destroy()
-    console.log("Database closed.")
+    const { closeConn } = await import("./database.js");
+    await closeConn();
+    await db.destroy();
+    console.log("Database closed.");
   } catch (err: any) {
     console.error("Shutdown error:", err.message)
   } finally {
@@ -68,21 +70,43 @@ export function rowToComparable(row: MarketDataRow): string {
 }
 
 export async function getResumeEnd(symbol: string): Promise<string | null> {
-  const row = await db("historical")
-    .where({ symbol })
-    .orderBy("trade_date", "asc")
-    .orderBy("trade_time", "asc")
-    .first()
+  console.log(`[${symbol}] querying for earliest record (resume end)...`);
+  try {
+    const { getConn } = await import("./database.js");
+    const conn = await getConn();
+    const row = await db("historical")
+      .where({ symbol })
+      .orderBy("trade_date", "asc")
+      .orderBy("trade_time", "asc")
+      .first()
+      .connection(conn);
 
-  return row ? rowToComparable(row as MarketDataRow) : null
+    const result = row ? rowToComparable(row as MarketDataRow) : null;
+    console.log(`[${symbol}] earliest record found: ${result ?? "NONE"}`);
+    return result;
+  } catch (error) {
+    console.error(`[${symbol}] Error querying getResumeEnd:`, error);
+    throw error;
+  }
 }
 
 export async function getLatestEnd(symbol: string): Promise<string | null> {
-  const row = await db("historical")
-    .where({ symbol })
-    .orderBy("trade_date", "desc")
-    .orderBy("trade_time", "desc")
-    .first()
+  console.log(`[${symbol}] querying for latest record...`);
+  try {
+    const { getConn } = await import("./database.js");
+    const conn = await getConn();
+    const row = await db("historical")
+      .where({ symbol })
+      .orderBy("trade_date", "desc")
+      .orderBy("trade_time", "desc")
+      .first()
+      .connection(conn);
 
-  return row ? rowToComparable(row as MarketDataRow) : null
+    const result = row ? rowToComparable(row as MarketDataRow) : null;
+    console.log(`[${symbol}] latest record found: ${result ?? "NONE"}`);
+    return result;
+  } catch (error) {
+    console.error(`[${symbol}] Error querying getLatestEnd:`, error);
+    throw error;
+  }
 }
