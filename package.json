@@ -8,7 +8,8 @@
     "dev:log": "mkdir -p logs && npm run dev 2>&1 | tee logs/$(date +'%Y-%m-%d_%H-%M-%S').log",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:db": "NODE_OPTIONS='--loader ts-node/esm --no-warnings' node test-db.ts"
   },
   "keywords": [],
   "author": "",

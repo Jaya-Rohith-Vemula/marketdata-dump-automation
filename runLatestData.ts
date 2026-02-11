@@ -60,9 +60,9 @@ export async function runLatestData(symbol: string, interval: number = 2000) {
 
     // paginate backward using OLDEST row in this batch
     if (parsed.length > 0) {
-      const oldest = parsed[parsed.length - 1]
+      const oldest = parsed[0]
       if (oldest) {
-        console.log("oldest", oldest)
+        console.log(`[${symbol}] oldest in batch: ${oldest.datetime}, setting end for next page`)
         end = rowToComparable(oldest)
       }
     }
