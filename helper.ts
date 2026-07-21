@@ -69,44 +69,39 @@ export function rowToComparable(row: MarketDataRow): string {
   return (row.datetime || "").replace(/[-:\s]/g, "") + "00"
 }
 
-export async function getResumeEnd(symbol: string): Promise<string | null> {
-  console.log(`[${symbol}] querying for earliest record (resume end)...`);
-  try {
-    const { getConn } = await import("./database.js");
-    const conn = await getConn();
-    const row = await db("historical")
-      .where({ symbol })
-      .orderBy("trade_date", "asc")
-      .orderBy("trade_time", "asc")
-      .first()
-      .connection(conn);
-
-    const result = row ? rowToComparable(row as MarketDataRow) : null;
-    console.log(`[${symbol}] earliest record found: ${result ?? "NONE"}`);
-    return result;
-  } catch (error) {
-    console.error(`[${symbol}] Error querying getResumeEnd:`, error);
-    throw error;
-  }
+// Comparable strings are 14-digit yyyyMMddHHmmss (see rowToComparable above).
+export function comparableFromDate(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return (
+    date.getFullYear().toString() +
+    pad(date.getMonth() + 1) +
+    pad(date.getDate()) +
+    pad(date.getHours()) +
+    pad(date.getMinutes()) +
+    pad(date.getSeconds())
+  )
 }
 
-export async function getLatestEnd(symbol: string): Promise<string | null> {
-  console.log(`[${symbol}] querying for latest record...`);
-  try {
-    const { getConn } = await import("./database.js");
-    const conn = await getConn();
-    const row = await db("historical")
-      .where({ symbol })
-      .orderBy("trade_date", "desc")
-      .orderBy("trade_time", "desc")
-      .first()
-      .connection(conn);
+export function parseComparable(comparable: string): Date {
+  const y = Number(comparable.slice(0, 4))
+  const mo = Number(comparable.slice(4, 6)) - 1
+  const d = Number(comparable.slice(6, 8))
+  const h = Number(comparable.slice(8, 10))
+  const mi = Number(comparable.slice(10, 12))
+  const s = Number(comparable.slice(12, 14))
+  return new Date(y, mo, d, h, mi, s)
+}
 
-    const result = row ? rowToComparable(row as MarketDataRow) : null;
-    console.log(`[${symbol}] latest record found: ${result ?? "NONE"}`);
-    return result;
-  } catch (error) {
-    console.error(`[${symbol}] Error querying getLatestEnd:`, error);
-    throw error;
-  }
+export function addDays(date: Date, days: number): Date {
+  const result = new Date(date)
+  result.setDate(result.getDate() + days)
+  return result
+}
+
+// For logging only — turns a 14-digit yyyyMMddHHmmss comparable into "YYYY-MM-DD HH:mm:ss".
+export function formatComparable(comparable: string): string {
+  return (
+    `${comparable.slice(0, 4)}-${comparable.slice(4, 6)}-${comparable.slice(6, 8)} ` +
+    `${comparable.slice(8, 10)}:${comparable.slice(10, 12)}:${comparable.slice(12, 14)}`
+  )
 }

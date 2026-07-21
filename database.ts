@@ -8,7 +8,7 @@ import "dotenv/config";
 console.log("Initializing database connection...");
 console.log("DB_USER:", process.env.DB_USER || "ADMIN");
 console.log("DB_CONNECT_STRING:", process.env.DB_CONNECT_STRING ? "REDACTED" : "NOT SET");
-console.log("TNS_ADMIN (Wallet Location):", process.env.TNS_ADMIN || "NOT SET");
+console.log("Connection Mode: Walletless TLS");
 
 const dbConfig: any = {
     client: "oracledb",
@@ -29,8 +29,6 @@ export async function getConn() {
         user: process.env.DB_USER!,
         password: process.env.DB_PASSWORD!,
         connectString: process.env.DB_CONNECT_STRING!,
-        walletLocation: process.env.TNS_ADMIN!,
-        walletPassword: process.env.DB_PASSWORD!,
     });
     console.log("Oracle connection established.");
     return persistentConn;
@@ -78,6 +76,18 @@ export async function initSchema() {
                 table.primary(["symbol", "trade_date", "trade_time"]);
             });
             console.log("Table 'historical' created.");
+        }
+
+        // 3. Self-healing: ensure SYNCED_THROUGH exists on SYMBOLS (added after initial launch).
+        // Tracks the last confirmed gap-free sync point per symbol, independent of MAX(historical) —
+        // only advanced once a full backward walk has provably reached it (see runSync.ts).
+        const syncedThroughCol = await conn.execute(
+            `SELECT column_name FROM user_tab_columns WHERE table_name = 'SYMBOLS' AND column_name = 'SYNCED_THROUGH'`
+        );
+        if (!(syncedThroughCol as any).rows || (syncedThroughCol as any).rows.length === 0) {
+            console.log("Adding 'SYNCED_THROUGH' column to SYMBOLS...");
+            await conn.execute(`ALTER TABLE SYMBOLS ADD (SYNCED_THROUGH VARCHAR2(20))`, [], { autoCommit: true });
+            console.log("'SYNCED_THROUGH' column added.");
         }
     } catch (error) {
         console.error("Error during initSchema:", error);

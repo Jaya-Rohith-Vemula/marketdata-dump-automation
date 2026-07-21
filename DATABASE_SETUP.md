@@ -19,21 +19,17 @@ Follow these steps to set up your free Oracle Database and connect this project 
 12. **Network Access**:
     *   For easiest setup, choose **Secure access from everywhere**.
     *   (Optional) If you want more security, you can restrict by IP.
-13. Click **Create Autonomous Database**.
+13. **Mutual TLS (mTLS)**: Toggle this **OFF** to allow TLS connections without a wallet.
+14. Click **Create Autonomous Database**.
 
-## 2. Get Connection Details & Wallet
+## 2. Get Connection Details (TLS)
 1.  Wait for the status to turn **Green (Available)**.
 2.  Go to the database details page.
 3.  Click **DB Connection**.
-4.  **Download Wallet**:
-    *   Click **Download Wallet**.
-    *   Enter a password for the wallet (can be the same as ADMIN).
-    *   Download the `.zip` file.
-5.  Extract the `.zip` content into a folder named `Wallet` inside this project directory:
-    *   Path: `/Wallet`
-6.  In the **DB Connection** window, look at the **Connection Strings**.
-    *   Find the one ending in `_low` or `_tp`.
-    *   Copy the full string (the one starting with `(description=...`).
+4.  Under **TLS Authentication**, select **TLS** (not Mutual TLS).
+5.  In the **Connection Strings** section, find the one ending in `_low` or `_tp`.
+6.  Copy the full connection string (the one starting with `(description=...`).
+    *   The string will use `protocol=tcps` for a secure TLS connection directly — **no wallet download is needed**.
 
 ## 3. Update Project Configuration
 Open the `.env` file in this project and fill in the details:
@@ -42,15 +38,15 @@ Open the `.env` file in this project and fill in the details:
 DB_USER=ADMIN
 DB_PASSWORD=YourAdminPassword
 DB_CONNECT_STRING="COPIED_CONNECTION_STRING"
-TNS_ADMIN="/Wallet"
 ```
+
+> **Note:** Since we are using a direct TLS connection, there is no need for a `TNS_ADMIN` path or a downloaded wallet.
 
 ## 4. Run the Project
 1.  Install dependencies: `npm install`
 2.  Run the fetcher: `npm run dev:log`
 
 The script will automatically:
-*   Connect to Oracle.
+*   Connect to Oracle via TLS.
 *   Create the `historical` table if it doesn't exist.
 *   Fetch and dump the data.
-
